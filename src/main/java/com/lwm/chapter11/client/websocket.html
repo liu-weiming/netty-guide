@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>websocket client</title>
+</head>
+<body>
+  <script type="text/javascript">
+    var socket;
+    if (!window.WebSocket) {
+        window.WebSocket = window.MozWebSockt;
+    }
+    if (window.WebSocket) {
+        socket = new WebSocket("ws://localhost:8080/websocket");
+        socket.onmessage = function(event) {
+            var ta = document.getElementById('responseText');
+            ta.value = "";
+            ta.value = event.data;
+        };
+        socket.onopen  = function(event) {
+            var ta = document.getElementById('responseText');
+            ta.value = "打开WebSocket服务正常，浏览器支持websocket";
+        };
+        socket.onclose = function(event) {
+            var ta = document.getElementById('responseText');
+            ta.value = "";
+            ta.value = "WebSocket关闭";
+        }
+    } else {
+        alert("sorry, your browser doesnt seems to support websocket.");
+    }
+    function send(message) {
+        if (!window.WebSocket) {
+            return;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(message);
+        } else {
+            alert("connection not establish with success")
+        }
+    }
+  </script>
+  <form onsubmit="return false;">
+      <input type="text" name="message" value="netty"/>
+      <br><br>
+      <input type="button" value="send websocket request" onclick="send(this.form.message.value)"/>
+      <hr color="blue"/>
+      <h3>response of server websocket:</h3>
+      <textarea id="responseText" style="width: 500px;height: 300px;"></textarea>
+  </form>
+</body>
+</html>

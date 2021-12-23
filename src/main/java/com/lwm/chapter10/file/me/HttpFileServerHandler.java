@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Arrays;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -48,14 +47,14 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         }
         RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
         long fileLength = randomAccessFile.length();
-        HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, OK);
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, OK);
         HttpUtil.setContentLength(response, fileLength);
         setContentTypeHeader(response, file);
         if (HttpUtil.isKeepAlive(request)) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         }
         ctx.write(response);
-        final ChannelFuture future = ctx.write(new ChunkedFile(randomAccessFile), ctx.newProgressivePromise());
+        ChannelFuture future = ctx.write(new ChunkedFile(randomAccessFile, 0, fileLength, 8192), ctx.newProgressivePromise());
         future.addListener(new ChannelProgressiveFutureListener() {
             @Override
             public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) throws Exception {
@@ -105,14 +104,6 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         return uri;
     }
 
-    public static void main(String[] args) {
-        File f = new File("/");
-        System.out.println(f.exists());
-        if (f.isDirectory()) {
-            Arrays.stream(f.list()).forEach(System.out::println);
-        }
-    }
-
     private void sendListing(ChannelHandlerContext ctx, File dir) {
         File[] files = dir.listFiles();
         PageResource pageResource = PageResource.instance();
@@ -131,7 +122,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 
     private void setContentTypeHeader(HttpResponse response, File file) {
         final MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
-        response.headers().set(CONTENT_TYPE, mimeMap.getContentType(file));
+        response.headers().set(CONTENT_TYPE, mimeMap.getContentType(file.getParent()));
     }
 
 }

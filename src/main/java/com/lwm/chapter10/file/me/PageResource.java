@@ -10,8 +10,8 @@ public class PageResource {
 
     private final static String TEMPLATE_PATH = "src/main/resources/template.html";
     private static StringBuilder htmlStr;
-    private static String liStr = "<li><a href=\"{name}/\">{name}</a></li>\n";
-    private String li;
+    private static String liStr = "<li><a href=\"{name}\">{name}</a></li>\n";
+    private String li = "";
     private String title;
     private String path;
 
